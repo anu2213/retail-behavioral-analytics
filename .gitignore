@@ -12,3 +12,8 @@ dist/
 
 # Environment
 .env
+# ML Models
+*.caffemodel
+*.pb
+*.prototxt
+retail-backend/models/
