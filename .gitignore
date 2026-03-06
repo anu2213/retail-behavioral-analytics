@@ -17,3 +17,9 @@ dist/
 *.pb
 *.prototxt
 retail-backend/models/
+temp_*
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm

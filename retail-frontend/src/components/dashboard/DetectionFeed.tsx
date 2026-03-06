@@ -11,12 +11,12 @@ const emotionColors: Record<string, string> = {
   Angry: "text-destructive bg-destructive/10",
 };
 
-const DetectionFeed = () => {
+const DetectionFeed = ({ sessionId }: { sessionId: string }) => {
   const [recentDetections, setRecentDetections] = useState<any[]>([]);
   useEffect(() => {
     async function fetchDetections() {
       try {
-        const res = await getRecentDetections();
+        const res = await getRecentDetections(sessionId);
         setRecentDetections(res.data);
       } catch (err) {
         console.error("Detection feed error:", err);
@@ -28,7 +28,7 @@ const DetectionFeed = () => {
     const interval = setInterval(fetchDetections, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [sessionId]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

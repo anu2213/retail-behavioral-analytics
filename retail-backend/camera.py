@@ -1,4 +1,4 @@
-from database import insert_event
+from database import insert_event, create_session
 from deepface import DeepFace
 from insightface.app import FaceAnalysis
 import cv2
@@ -45,30 +45,37 @@ def get_age_group(age):
         return "60+"
 
 
-def run_camera():
-    # InsightFace setup inside the function
+def run_camera(source=0, session_id=None):
     insight_app = FaceAnalysis(allowed_modules=['detection', 'genderage'])
-    insight_app.prepare(ctx_id=-1)  # -1 = CPU, change to 0 if you have a GPU
+    insight_app.prepare(ctx_id=-1)
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(source)
+    print(f"Session started: {session_id}")
 
+    is_video_file = isinstance(source, str)
+    frame_skip = 10 if is_video_file else 3
+    frame_count = 0
     last_prediction_time = 0
-    prediction_interval = 2
+    prediction_interval = 3
 
-    age = "0"
-    emotion = "Detecting"
-    age_history = []
-    AGE_HISTORY_SIZE = 10
+    age_buffer = []
+    AGE_BUFFER_SIZE = 5
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        frame_count += 1
+        if frame_count % frame_skip != 0:
+            continue
+
+        frame = cv2.resize(frame, (640, 360))
         insight_faces = insight_app.get(frame)
         print("Faces detected:", len(insight_faces))
-        for f in insight_faces:
-         print("Raw age:", f.age)
+
+        current_time = time.time()
+        should_predict = current_time - last_prediction_time > prediction_interval
 
         for face in insight_faces:
             bbox = face.bbox.astype(int)
@@ -76,32 +83,28 @@ def run_camera():
 
             face_h = y2 - y1
             face_w = x2 - x1
-            if face_h < 80 or face_w < 80:
+            if face_h < 50 or face_w < 50:
                 continue
 
             face_img = get_padded_face(frame, x1, y1, x2, y2)
-
             if face_img.size == 0:
                 continue
 
-            current_time = time.time()
+            raw_age = face.age
+            age_buffer.append(raw_age)
+            if len(age_buffer) > AGE_BUFFER_SIZE:
+                age_buffer.pop(0)
+            smoothed_age = int(sum(age_buffer) / len(age_buffer))
+            age_group = get_age_group(smoothed_age)
 
-            if current_time - last_prediction_time > prediction_interval:
-                predicted_age = face.age
+            predicted_emotion = None
+            predicted_confidence = None
+
+            if should_predict:
                 predicted_emotion, predicted_confidence = predict_emotion(face_img)
+                print("DEBUG:", smoothed_age, predicted_emotion, predicted_confidence)
 
-                print("DEBUG:", predicted_age, predicted_emotion, predicted_confidence)
-                
-
-                if predicted_age is not None:
-                    age_history.append(predicted_age)
-                    if len(age_history) > AGE_HISTORY_SIZE:
-                        age_history.pop(0)
-                    age = int(sum(age_history) / len(age_history))
-                    if predicted_emotion is not None: 
-                     emotion = predicted_emotion
-                    age_group = get_age_group(age)
-
+                if predicted_emotion is not None:
                     frame_height, frame_width, _ = frame.shape
                     face_center_x = x1 + (x2 - x1) // 2
 
@@ -112,18 +115,18 @@ def run_camera():
                     else:
                         zone = "Checkout"
 
-                    insert_event(age_group, emotion, predicted_confidence, zone)
+                    insert_event(age_group, predicted_emotion, predicted_confidence, zone, session_id=session_id)
 
-                last_prediction_time = current_time
-
-            label = f"Age: {age} | Emotion: {emotion}"
+            label = f"Age: {smoothed_age} ({age_group}) | Emotion: {predicted_emotion or 'detecting'}"
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.putText(frame, label, (x1, y1 - 10),
                         cv2.FONT_HERSHEY_SIMPLEX,
-                        0.7, (0, 255, 0), 2)
+                        0.6, (0, 255, 0), 2)
+
+        if should_predict and insight_faces:
+            last_prediction_time = current_time
 
         cv2.imshow("Retail Demographic Scanner", frame)
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

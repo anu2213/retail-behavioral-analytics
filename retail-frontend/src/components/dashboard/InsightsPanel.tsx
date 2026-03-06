@@ -30,7 +30,7 @@ const typeConfig = {
   },
 };
 
-const InsightsPanel = () => {
+const InsightsPanel = (sessionId) => {
   const [insights, setInsights] = useState<any[]>([]);
   useEffect(() => {
     async function fetchInsights() {
@@ -43,7 +43,7 @@ const InsightsPanel = () => {
     }
 
     fetchInsights();
-  }, []);
+  }, [sessionId]);
 
   return (
     <motion.div

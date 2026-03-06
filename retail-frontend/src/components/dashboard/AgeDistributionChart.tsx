@@ -22,12 +22,12 @@ const barColors = [
   "hsl(260, 60%, 48%)",
 ];
 
-const AgeDistributionChart = () => {
+const AgeDistributionChart = ({ sessionId }: { sessionId: string }) => {
   const [data, setData] = useState<any[]>([]);
   useEffect(() => {
     async function fetchAgeData() {
       try {
-        const res = await getAgeDistribution();
+        const res = await getAgeDistribution(sessionId);
         console.log(res.data);
 
         const transformed = Object.entries(res.data).map(([key, value]) => ({
@@ -42,7 +42,7 @@ const AgeDistributionChart = () => {
     }
 
     fetchAgeData();
-  }, []);
+  }, [sessionId]);
 
   return (
     <motion.div

@@ -12,13 +12,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const FootTrafficChart = () => {
+const FootTrafficChart = ({ sessionId }: { sessionId: string }) => {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchTraffic() {
       try {
-        const res = await getTraffic();
+        const res = await getTraffic(sessionId);
         setData(res.data);
       } catch (err) {
         console.error("Traffic error:", err);
@@ -29,7 +29,7 @@ const FootTrafficChart = () => {
     const interval = setInterval(fetchTraffic, 10000); // every 10 sec
 
     return () => clearInterval(interval); // cleanup
-  }, []);
+  }, [sessionId]);
 
   return (
     <motion.div

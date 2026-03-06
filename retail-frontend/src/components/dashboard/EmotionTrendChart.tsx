@@ -12,13 +12,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const EmotionTrendChart = () => {
+const EmotionTrendChart = ({ sessionId }: { sessionId: string }) => {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchEmotionData() {
       try {
-        const res = await getEmotionDistribution();
+        const res = await getEmotionDistribution(sessionId);
         setData(res.data);
       } catch (err) {
         console.error("Emotion trend error:", err);
@@ -26,7 +26,7 @@ const EmotionTrendChart = () => {
     }
 
     fetchEmotionData();
-  }, []);
+  }, [sessionId]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
