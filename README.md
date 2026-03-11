@@ -4,11 +4,11 @@ RetailVision AI is an AI-powered retail analytics platform that analyzes custome
 
 ## 🌐 Live Demo
 
-Frontend: https://retail-behavioral-analytics.vercel.app/
+Live: https://retail-behavioral-analytics.vercel.app/
 
 Explore the deployed application to see the dashboard, analytics, and AI-generated insights in action.
 
-## 🚀 Features
+##  Features
 
 - Real-time face detection using OpenCV
 - Age group estimation with InsightFace
