@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_URL } from "@/config";
 
 const API = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: API_URL,
 });
 
 export const getSummary = (sessionId?: string) =>

@@ -2,6 +2,7 @@ import { Brain, Sparkles, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAiSalesAdvice } from "@/services/api";
 
+
 interface SalesAdvice {
   summary: Record<string, unknown>;
   ai_recommendations: string;
